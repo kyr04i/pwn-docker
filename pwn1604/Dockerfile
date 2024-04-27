@@ -1,29 +1,34 @@
 FROM ubuntu:16.04
 
-ENV LC_CTYPE C.UTF-8
-RUN apt upgrade && apt update
-RUN apt-get update && apt-get install -y netcat
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG en_US.UTF-8  
+ENV LANGUAGE en_US:en  
+ENV LC_ALL en_US.UTF-8 
 
-RUN apt install python python-pip git curl wget vim zsh gdb python3 python3-pip  -y
-RUN pip3 install unicorn
-RUN pip3 install keystone-engine 
-RUN pip3 install
-RUN pip3 install capstone ropper
+RUN apt-get update && apt-get install -y binutils
+RUN apt-get install -y sudo locales python3 python3-pip python3-dev git gcc gcc-multilib gdb vim ruby gem tmux wget nmap netcat xinetd socat netcat 
 
-RUN pip install pwntools
+RUN python3 -m pip install -U pip && \
+    python3 -m pip install --no-cache-dir \
+    ropgadget \
+    pwntools \
+    z3-solver \
+    ropper \
+    unicorn \
+    keystone-engine \
+    capstone \
+    angr 
 
-RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true
+# Install one_gadget
+RUN gem install one_gadget 
 
-RUN mkdir -p "$HOME/.zsh"
-RUN git clone https://github.com/sindresorhus/pure.git "$HOME/.zsh/pure"
-RUN echo "fpath+=("$HOME/.zsh/pure")\nautoload -U promptinit; promptinit\nprompt pure" >> ~/.zshrc
-
-RUN git clone https://github.com/zsh-users/zsh-syntax-highlighting.git
-RUN echo "source ./zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" >> ~/.zshrc
-
-RUN git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
-RUN echo "source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" >> ~/.zshrc
-RUN echo "ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=111'" >> ~/.zshrc
-
-RUN wget -O ~/.gdbinit-gef.py -q https://github.com/hugsy/gef/raw/master/gef.py
+# Install gef
+RUN wget -O ~/.gdbinit-gef.py -q http://gef.blah.cat/py
 RUN echo source ~/.gdbinit-gef.py >> ~/.gdbinit
+
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen
+
+RUN mkdir -p /ctf
+
+CMD ["tmux"]
